@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .quiz-container {
+            display: none;
+        }
+        
+        .quiz-container.active {
+            display: block;
+        }
+        
+        .progress-bar {
+            background: #ddd;
+            height: 8px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            background: #667eea;
+            height: 100%;
+            transition: width 0.3s;
+        }
+        
+        .question-number {
+            color: #999;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        
+        .question {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .option {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+        
+        .option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .option.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+        
+        .option.correct {
+            border-color: #4caf50;
+            background: #4caf50;
+            color: white;
+        }
+        
+        .option.incorrect {
+            border-color: #f44336;
+            background: #f44336;
+            color: white;
+        }
+        
+        .option:disabled {
+            cursor: not-allowed;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .next-btn {
+            background: #667eea;
+            color: white;
+        }
+        
+        .next-btn:hover {
+            background: #764ba2;
+        }
+        
+        .next-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .restart-btn {
+            background: #667eea;
+            color: white;
+            width: 100%;
+        }
+        
+        .restart-btn:hover {
+            background: #764ba2;
+        }
+        
+        .results-container {
+            display: none;
+            text-align: center;
+        }
+        
+        .results-container.active {
+            display: block;
+        }
+        
+        .score {
+            font-size: 4em;
+            color: #667eea;
+            font-weight: bold;
+            margin: 30px 0;
+        }
+        
+        .score-text {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .start-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .start-container.hidden {
+            display: none;
+        }
+        
+        .emoji {
+            font-size: 4em;
+        }
+        
+        .start-btn {
+            background: #667eea;
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            width: 100%;
+        }
+        
+        .start-btn:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Quiz Game</h1>
+        
+        <!-- Start Screen -->
+        <div class="start-container" id="startContainer">
+            <div class="emoji">❓</div>
+            <p style="font-size: 1.2em; color: #666; text-align: center;">
+                Test your knowledge! Answer 5 questions and see how well you score.
+            </p>
+            <button class="start-btn" onclick="startQuiz()">Start Quiz</button>
+        </div>
+        
+        <!-- Quiz Screen -->
+        <div class="quiz-container" id="quizContainer">
+            <div class="progress-bar">
+                <div class="progress" id="progressBar"></div>
+            </div>
+            
+            <div class="question-number" id="questionNumber"></div>
+            <div class="question" id="question"></div>
+            
+            <div class="options" id="options"></div>
+            
+            <div class="button-group">
+                <button class="next-btn" id="nextBtn" onclick="nextQuestion()" disabled>
+                    Next Question
+                </button>
+            </div>
+        </div>
+        
+        <!-- Results Screen -->
+        <div class="results-container" id="resultsContainer">
+            <div class="emoji" id="resultEmoji">🎉</div>
+            <div class="score-text">Your Score</div>
+            <div class="score" id="finalScore"></div>
+            <div class="message" id="resultMessage"></div>
+            <button class="restart-btn" onclick="restartQuiz()">Take Quiz Again</button>
+        </div>
+    </div>
+    
+    <script>
+        let currentQuestion = 0;
+        let score = 0;
+        let quizData = [];
+        let selectedAnswer = null;
+        let answered = false;
+        
+        async function startQuiz() {
+            // Fetch quiz questions
+            const response = await fetch('/api/quiz');
+            quizData = await response.json();
+            
+            currentQuestion = 0;
+            score = 0;
+            selectedAnswer = null;
+            answered = false;
+            
+            // Hide start screen, show quiz
+            document.getElementById('startContainer').classList.add('hidden');
+            document.getElementById('quizContainer').classList.add('active');
+            
+            // Load first question
+            loadQuestion();
+        }
+        
+        function loadQuestion() {
+            const q = quizData[currentQuestion];
+            
+            // Update question number and progress
+            const total = quizData.length;
+            const progress = ((currentQuestion + 1) / total) * 100;
+            
+            document.getElementById('questionNumber').textContent = `Question ${currentQuestion + 1} of ${total}`;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('question').textContent = q.question;
+            
+            // Load options
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            
+            q.options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option';
+                button.textContent = option;
+                button.onclick = () => selectAnswer(option, button);
+                optionsDiv.appendChild(button);
+            });
+            
+            // Reset for new question
+            selectedAnswer = null;
+            answered = false;
+            document.getElementById('nextBtn').disabled = true;
+        }
+        
+        async function selectAnswer(answer, buttonElement) {
+            if (answered) return; // Already answered this question
+            
+            selectedAnswer = answer;
+            answered = true;
+            
+            // Check if answer is correct
+            const response = await fetch('/api/check-answer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    question_index: currentQuestion,
+                    answer: answer
+                })
+            });
+            
+            const result = await response.json();
+            
+            // Highlight all options
+            const allOptions = document.querySelectorAll('.option');
+            allOptions.forEach(btn => {
+                if (btn.textContent === result.correct_answer) {
+                    btn.classList.add('correct');
+                } else if (btn.textContent === answer && !result.correct) {
+                    btn.classList.add('incorrect');
+                }
+                btn.disabled = true;
+            });
+            
+            // Add to score if correct
+            if (result.correct) {
+                score++;
+            }
+            
+            // Enable next button
+            document.getElementById('nextBtn').disabled = false;
+        }
+        
+        function nextQuestion() {
+            currentQuestion++;
+            
+            if (currentQuestion < quizData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+        
+        function showResults() {
+            const total = quizData.length;
+            const percentage = Math.round((score / total) * 100);
+            
+            document.getElementById('quizContainer').classList.remove('active');
+            document.getElementById('resultsContainer').classList.add('active');
+            
+            document.getElementById('finalScore').textContent = `${score} / ${total}`;
+            
+            // Show different message based on score
+            let message = '';
+            let emoji = '';
+            
+            if (percentage === 100) {
+                message = "Perfect! You're a quiz master! 🏆";
+                emoji = '🏆';
+            } else if (percentage >= 80) {
+                message = "Excellent work! You really know your stuff! ⭐";
+                emoji = '⭐';
+            } else if (percentage >= 60) {
+                message = "Good job! You did well! 👍";
+                emoji = '👍';
+            } else if (percentage >= 40) {
+                message = "Not bad! Keep learning! 📚";
+                emoji = '📚';
+            } else {
+                message = "Keep trying! You'll get better! 💪";
+                emoji = '💪';
+            }
+            
+            document.getElementById('resultMessage').textContent = message;
+            document.getElementById('resultEmoji').textContent = emoji;
+        }
+        
+        function restartQuiz() {
+            document.getElementById('resultsContainer').classList.remove('active');
+            document.getElementById('startContainer').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
