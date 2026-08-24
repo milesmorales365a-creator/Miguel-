@@ -29,6 +29,11 @@ QUIZ_QUESTIONS = [
         "question": "What color is the sky on a clear day?",
         "options": ["Red", "Green", "Blue", "Yellow"],
         "correct": "Blue"
+    },
+    {
+        "question": "Do you know Miguel 👑?",
+        "options": ["YES", "NO", "NOT MUCH", "I'D NEVER"],
+        "correct": "YES"
     }
 ]
 
